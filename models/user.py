@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -8,11 +9,12 @@ class User(Base):
 
   id = Column(Integer, primary_key=True)
   name = Column(String)
+  nickname = Column(String)
   password = Column(String)
   token = Column(String)
 
-  def to_dict(self):
-      return { "id": self.id, "name": self.name }
+  def to_dict(self) -> Dict[str, Any]:
+      return { "id": self.id, "name": self.name, "nickname": self.nickname }
     
-  def to_dict_with_token(self):
-    return { "id": self.id, "name": self.name, "token": self.token }
+  def to_dict_with_token(self) -> Dict[str, Any]:
+    return { "id": self.id, "name": self.name, "nickname": self.nickname, "token": self.token }
