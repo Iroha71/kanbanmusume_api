@@ -1,4 +1,6 @@
 # パッケージ
 - flask
 - flask-restful
-- Flask-JWT
+- flask-jwt-extended
+- flask-sqlalchemy
+- flask-sqlalchemy-session
