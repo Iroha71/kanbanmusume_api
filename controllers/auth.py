@@ -1,5 +1,4 @@
 from werkzeug.security import safe_str_cmp
-from typing import List
 from models.user import User
 from flask_sqlalchemy_session import current_session
 from flask import Blueprint, request
