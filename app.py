@@ -18,6 +18,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # JSONのソートを抑止
 app.config['JSON_SORT_KEYS'] = False
 app.config['JWT_SECRET_KEY'] = 'secret-key'   # JWTに署名する際の秘密鍵
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = False
 jwt = JWTManager(app)
 
 if __name__ == '__main__':

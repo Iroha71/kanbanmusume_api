@@ -1,8 +1,6 @@
-from _typeshed import Self
 from typing import Any, Dict
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm.query import Query
 from const import input_limit
 Base = declarative_base()
 class Category(Base):
@@ -24,8 +22,7 @@ class Category(Base):
     current_session.add(self)
     current_session.commit()
 
-  def update(current_session, name: str, user_id: int) -> Self:
-    query: Query = current_session.query(Self)
-    category: Self = query.filter(Self.user_id==user_id).first()
-    category.name = name
-    current_session.commit()
+  def update(self, name: str):
+    self.name = name
+
+    return self
