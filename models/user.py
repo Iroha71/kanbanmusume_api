@@ -1,8 +1,7 @@
 from typing import Any, Dict
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from models.base import Base
+from sqlalchemy.orm import relationship
 
 class User(Base):
   __tablename__ = 'users'
@@ -11,10 +10,14 @@ class User(Base):
   name = Column(String)
   nickname = Column(String)
   password = Column(String)
-  token = Column(String)
+
+  # tasks = relationship("Task", back_populates="user")
 
   def to_dict(self) -> Dict[str, Any]:
       return { "id": self.id, "name": self.name, "nickname": self.nickname }
     
-  def to_dict_with_token(self) -> Dict[str, Any]:
-    return { "id": self.id, "name": self.name, "nickname": self.nickname, "token": self.token }
+  def to_dict_with_token(self, token) -> Dict[str, Any]:
+    info: Dict[str, Any] = self.to_dict()
+    info['token'] = token
+    
+    return info
