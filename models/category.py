@@ -1,8 +1,9 @@
-from typing import Any, Dict
+from models.task import Task
+from typing import Any, Dict, List
 from sqlalchemy import Column, String, Integer
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from const import input_limit
-Base = declarative_base()
+from models.base import Base
 class Category(Base):
   __tablename__ = 'categories'
 
@@ -10,6 +11,7 @@ class Category(Base):
   user_id = Column(Integer, nullable=False)
   name = Column(String(input_limit.CATEGORY_NAME), nullable=False)
   finish_rate = Column(Integer, default=0)
+  # tasks = relationship("Task", back_populates="category")
 
   def to_dict(self) -> Dict[str, Any]:
     return {
