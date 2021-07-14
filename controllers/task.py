@@ -5,18 +5,30 @@ from flask.json import jsonify
 from flask_sqlalchemy_session import current_session
 from controllers.auth import current_user_id
 from flask_jwt_extended import jwt_required
-from sqlalchemy.orm.query import Query
 from models.task import Task
+from const import message
 
 app = Blueprint('task', __name__, url_prefix='/task')
 
 @app.route('/', methods=['GET'])
 @jwt_required()
 def index():
-  query: Query = current_session.query(Task)
-  res: List[Task] = Task.index(query, request.args.get('category_id'))
+  tasks: List[Task] = Task.index(current_session, request.args.get('category_id'))
+  if len(tasks) <= 0:
+    msg: Dict[str, Any] = message.set_notfound('タスク')
+    return jsonify(msg['message']), msg['status']
   
-  return jsonify(res)
+  return jsonify(tasks)
+
+@app.route('/<task_id>', methods=['GET'])
+@jwt_required()
+def find(task_id: str):
+  task: Task = Task.find_by_id(current_session, task_id)
+  if task == None:
+    notfound: Dict[str, int] = message.set_notfound('タスク')
+    return jsonify(notfound['message']), notfound['status']
+  
+  return jsonify(task.to_dict())
 
 @app.route('/<category_id>', methods=['POST'])
 @jwt_required()

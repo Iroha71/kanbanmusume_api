@@ -9,6 +9,7 @@ from const import input_limit
 from typing import Any
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from const import message
+from controllers.auth import has_role
 
 app = Blueprint('category', __name__, url_prefix='/category')
 
@@ -67,7 +68,7 @@ def index():
 def find(category_id: str):
   category: Category = find_category(category_id)
   if not can_edit(category):
-    return message.NOT_HAVE_ROLE_WATCH
+    return message.NOT_HAVE_ROLE_WATCH['message'], message.NOT_HAVE_ROLE_WATCH['status']
   return category.to_dict()
 
 @app.route('/', methods=['POST'])
@@ -88,7 +89,7 @@ def create():
 def update(category_id: str):
   category: Category = find_category(category_id)
   if not can_edit(category):
-    return message.NOT_HAVE_ROLE_EDIT
+    return message.NOT_HAVE_ROLE_EDIT['message'], message.NOT_HAVE_ROLE_WATCH['status']
   
   category = category.update(request.json.get('name', None))
   current_session.commit()
@@ -100,7 +101,7 @@ def delete(category_id: str):
   category: Category = find_category(category_id)
   category_name = category.name
   if not can_edit(category):
-    return message.NOT_HAVE_ROLE_EDIT
+    return message.NOT_HAVE_ROLE_EDIT['message'], message.NOT_HAVE_ROLE_EDIT['status']
   current_session.delete(category)
   current_session.commit()
 

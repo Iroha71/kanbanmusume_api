@@ -10,14 +10,14 @@ class Category(Base):
   id = Column(Integer, primary_key=True)
   user_id = Column(Integer, nullable=False)
   name = Column(String(input_limit.CATEGORY_NAME), nullable=False)
-  finish_rate = Column(Integer, default=0)
+  finished_rate = Column(Integer, default=0)
   # tasks = relationship("Task", back_populates="category")
 
   def to_dict(self) -> Dict[str, Any]:
     return {
       "id": self.id, 
       "name": self.name,
-      "finished_rate": self.finish_rate
+      "finished_rate": self.finished_rate
     }
 
   def create(self, current_session):
