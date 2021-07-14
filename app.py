@@ -3,7 +3,7 @@ from flask_sqlalchemy_session import flask_scoped_session
 from database import session as dbsession
 from database import SQLALCHEMY_DATABASE_URI
 from flask_jwt_extended import JWTManager
-from controllers import auth, user, category, task, girl
+from controllers import auth, user, category, task, girl, user_girl
 
 """BluePrintで各コントローラに処理を振り分ける
 """
@@ -14,6 +14,7 @@ app.register_blueprint(user.app)
 app.register_blueprint(category.app)
 app.register_blueprint(task.app)
 app.register_blueprint(girl.app)
+app.register_blueprint(user_girl.app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

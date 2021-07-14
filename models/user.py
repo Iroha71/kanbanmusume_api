@@ -11,6 +11,7 @@ class User(Base):
   nickname = Column(String)
   password = Column(String)
 
+  girls = relationship("UserGirl", back_populates='user')
   # tasks = relationship("Task", back_populates="user")
 
   def to_dict(self) -> Dict[str, Any]:

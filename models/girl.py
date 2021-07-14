@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
 from sqlalchemy import Column, String, DateTime
-from sqlalchemy.orm import query
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Integer
 from models.base import Base, convert_object2dict
 from sqlalchemy.orm.query import Query
@@ -13,6 +13,8 @@ class Girl(Base):
   code = Column(String(10), nullable=False, unique=True)
   detail = Column(String(100))
   birthday = Column(DateTime, nullable=False)
+
+  user_girls = relationship('UserGirl', back_populates='girl')
 
   @classmethod
   def index(cls, session) -> List[Dict[str, Any]]:
