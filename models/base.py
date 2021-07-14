@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-def convert_object2dict(objects: List[Any]) -> Dict[str, Any]:
+def convert_object2dict(objects: List[Any]) -> List[Dict[str, Any]]:
   """オブジェクト配列を辞書型配列に変換する
 
   Args:
