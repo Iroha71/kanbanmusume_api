@@ -13,20 +13,6 @@ from controllers.auth import has_role
 
 app = Blueprint('category', __name__, url_prefix='/category')
 
-def find_category(category_id: int) -> Category:
-  """指定IDのカテゴリを取得する
-
-  Args:
-      category_id (int): 検索対象のカテゴリID
-
-  Returns:
-      Category: 該当IDのカテゴリ情報
-  """
-  query: Query = current_session.query(Category)
-  category: Category = query.filter(Category.id==category_id).first()
-
-  return category
-
 def get_current_user_id():
   return get_jwt_identity()
 
@@ -66,9 +52,9 @@ def index():
 @app.route('/<category_id>', methods=['GET'])
 @jwt_required()
 def find(category_id: str):
-  category: Category = find_category(category_id)
-  if not can_edit(category):
-    return message.NOT_HAVE_ROLE_WATCH['message'], message.NOT_HAVE_ROLE_WATCH['status']
+  category: Category = Category.find_by_id(category_id, current_session)
+  # if not can_edit(category):
+  #   return message.NOT_HAVE_ROLE_WATCH['message'], message.NOT_HAVE_ROLE_WATCH['status']
   return category.to_dict()
 
 @app.route('/', methods=['POST'])
