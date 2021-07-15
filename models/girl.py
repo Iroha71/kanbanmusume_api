@@ -1,8 +1,9 @@
-from typing import Any, Dict, List
+from typing import List
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Integer
-from models.base import Base, convert_object2dict
+from models.base import Base
+from flask_sqlalchemy_session import current_session
 from sqlalchemy.orm.query import Query
 
 class Girl(Base):
@@ -17,15 +18,15 @@ class Girl(Base):
   user_girls = relationship('UserGirl', back_populates='girl')
 
   @classmethod
-  def index(cls, session) -> List[Dict[str, Any]]:
-    query: Query = session.query(cls)
+  def index(cls) -> List['Girl']:
+    query: Query = current_session.query(cls)
     girls: List['Girl'] = query.all()
     
-    return convert_object2dict(girls)
+    return girls
 
   @classmethod
-  def find_by_id(cls, session, girl_id: int) -> 'Girl':
-    query: Query = session.query(cls)
+  def find_by_id(cls, girl_id: int) -> 'Girl':
+    query: Query = current_session.query(cls)
     girl: 'Girl' = query.filter(cls.id==girl_id).first()
 
     return girl

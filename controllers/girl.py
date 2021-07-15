@@ -1,22 +1,21 @@
-from typing import Any, Dict, List
-
+from typing import List
 from flask.json import jsonify
 from models.girl import Girl
-from flask import request, Blueprint
-from flask_jwt_extended import jwt_required
-from controllers.auth import current_user_id
-from flask_sqlalchemy_session import current_session
+from flask import Blueprint
 
 app = Blueprint('girl', __name__, url_prefix='/girl')
 
 @app.route('/', methods=['GET'])
 def index():
-  girls: List[Dict[str, Any]] = Girl.index(current_session)
+  girls: List[Girl] = Girl.index()
+  res = []
+  for girl in girls:
+    res.append(girl.to_dict())
 
-  return jsonify(girls)
+  return jsonify(res)
 
 @app.route('/<girl_id>', methods=['GET'])
 def find(girl_id: str):
-  girl: Girl = Girl.find_by_id(current_session, girl_id)
+  girl: Girl = Girl.find_by_id(girl_id)
 
   return jsonify(girl.to_dict())
