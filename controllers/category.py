@@ -1,32 +1,14 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 from flask import Blueprint
 from flask import request
 from flask.json import jsonify
 from models.category import Category
-from flask_sqlalchemy_session import current_session
-from sqlalchemy.orm.query import Query
 from const import input_limit
 from typing import Any
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required
 from const import message
-from controllers.auth import has_role
 
 app = Blueprint('category', __name__, url_prefix='/category')
-
-def get_current_user_id():
-  return get_jwt_identity()
-
-def can_edit(target_category: Category) -> bool:
-  """データ編集が可能なユーザか検証する
-
-  Args:
-      target_category (Category): 編集対象のカテゴリオブジェクト
-
-  Returns:
-      bool: 編集可能なユーザか
-  """
-
-  return get_current_user_id() == target_category.user_id
 
 def validate_data(request_data: Dict[str, Any]) -> List[str]:
   errors: List[str] = []
@@ -41,54 +23,47 @@ def validate_data(request_data: Dict[str, Any]) -> List[str]:
 @app.route('/', methods=['GET'])
 @jwt_required()
 def index():
-  query: Query = current_session.query(Category)
-  categories: List[Category] = query.filter(Category.user_id==get_current_user_id()).all()
-  categories_json = []
+  categories: List[str, Union[str, int]] = Category.index()
+  if len(categories) <= 0:
+    return jsonify(message.NOT_FOUND['message']), message.NOT_FOUND['status']
+  res = []
   for category in categories:
-    categories_json.append(category.to_dict())
+    res.append(category.to_dict())
 
-  return jsonify(categories_json)
+  return jsonify(res)
 
 @app.route('/<category_id>', methods=['GET'])
 @jwt_required()
 def find(category_id: str):
-  category: Category = Category.find_by_id(category_id, current_session)
-  # if not can_edit(category):
-  #   return message.NOT_HAVE_ROLE_WATCH['message'], message.NOT_HAVE_ROLE_WATCH['status']
-  return category.to_dict()
+  category: Category = Category.find_by_id(category_id)
+  if category == None:
+    return jsonify(message.NOT_FOUND['message']), message.NOT_FOUND['status']
+
+  return jsonify(category.to_dict())
 
 @app.route('/', methods=['POST'])
 @jwt_required()
 def create():
-  requested_category: Dict[str, Any] = request.json
-  check_errors = validate_data(requested_category)
-  if len(check_errors) > 0:
-    return jsonify({"errors": check_errors})
-  category: Category = Category(name=requested_category['name'], user_id=get_current_user_id())
-  current_session.add(category)
-  current_session.commit()
+  body: Dict[str, str] = request.json.get('category')
+  created_category: Category = Category.create(body['name'])
 
-  return jsonify(category.to_dict())
+  return jsonify(created_category.to_dict())
 
-@app.route('/<category_id>', methods=['POST'])
+@app.route('/<category_id>', methods=['PUT'])
 @jwt_required()
 def update(category_id: str):
-  category: Category = find_category(category_id)
-  if not can_edit(category):
-    return message.NOT_HAVE_ROLE_EDIT['message'], message.NOT_HAVE_ROLE_WATCH['status']
+  body: Dict[str, str] = request.json.get('category')
+  category: Category = Category.update(category_id, body['name'])
+  if category == None:
+    return jsonify(message.NOT_FOUND['message']), message.NOT_FOUND['status']
   
-  category = category.update(request.json.get('name', None))
-  current_session.commit()
   return jsonify(category.to_dict())
 
 @app.route('/<category_id>', methods=['DELETE'])
 @jwt_required()
 def delete(category_id: str):
-  category: Category = find_category(category_id)
-  category_name = category.name
-  if not can_edit(category):
-    return message.NOT_HAVE_ROLE_EDIT['message'], message.NOT_HAVE_ROLE_EDIT['status']
-  current_session.delete(category)
-  current_session.commit()
+  deleted_category_name: str = Category.delete(category_id)
+  if deleted_category_name == None:
+    return jsonify(message.NOT_FOUND['message']), message.NOT_FOUND['status']
 
-  return { "message": f"{ category_name }を削除しました" }
+  return { "message": f"{ deleted_category_name }を削除しました" }
