@@ -7,9 +7,6 @@ from const import message
 
 app = Blueprint('auth', __name__, url_prefix='/auth')
 
-def current_user_id():
-  return get_jwt_identity()
-
 @app.route('/login', methods=['POST'])
 def do_auth() -> User:
   """ユーザ認証を行う

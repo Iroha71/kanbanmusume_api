@@ -3,9 +3,10 @@ from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.query import Query
-from models.base import Base, convert_object2dict
-from const import message
+from models.base import Base
+from const import message as msg
 from flask_jwt_extended import get_jwt_identity
+from flask_sqlalchemy_session import current_session
 
 class Task(Base):
   __tablename__ = 'tasks'
@@ -22,60 +23,59 @@ class Task(Base):
   # category = relationship("Category", back_populates="tasks")
 
   @classmethod
-  def index(cls, session, category_id: int) -> 'List[Task]':
-    query: Query = session.query(cls)
+  def index(cls, category_id: int) -> 'List[Task]':
+    query: Query = current_session.query(cls)
     tasks: List[Task] = query.filter(cls.category_id==category_id, cls.user_id==get_jwt_identity()).all()
-    res: Dict[str, Any] = convert_object2dict(tasks)
 
-    return res
+    return tasks
 
   @classmethod
-  def create(cls, session, req: Dict[str, Any], category_id: int, current_user_id: int) -> Dict[str, Any]:
-    notify_at = None if req['notify_at'] == "" else req['notify_at']
+  def find_by_id(cls, task_id: int, query: Query=None) -> 'Task':
+    if query == None:
+      query = current_session.query(cls)
+
+    return  query.filter(cls.id==task_id, cls.user_id==get_jwt_identity()).first()
+
+  @classmethod
+  def create(cls, body: Dict[str, str]) -> 'Task':
+    notify_at = None if 'notify_at' not in body or body['notify_at'] == "" else body['notify_at']
+    memo = "" if 'memo' not in body else body['memo']
+    repeat_rate = None if 'repeat_rate' not in body or body['repeat_rate'] == "" else body['repeat_rate']
     
     task = cls(
-      name=req['name'],
-      category_id=category_id,
-      user_id=current_user_id,
-      memo=req['memo'],
-      repeat_rate=req['repeat_rate'],
+      name=body['name'],
+      category_id=body['category_id'],
+      user_id=get_jwt_identity(),
+      memo=memo,
+      repeat_rate=repeat_rate,
       notify_at=notify_at
       )
-    session.add(task)
-    session.commit()
+    current_session.add(task)
+    current_session.commit()
 
-    return task.to_dict()
+    return task
 
   @classmethod
-  def update(cls, session, body: Dict[str, Any], task_id: int, user_id) -> Dict[str, Any]:
-    task = Task.find_by_id(session, task_id, user_id)
+  def update(cls,  task_id: int, body: Dict[str, str]) -> 'Task':
+    task: 'Task' = Task.find_by_id(task_id)
+    if task == None:
+      return None
     for key, value in body.items():
       setattr(task, key, value)
-    session.commit()
+    current_session.commit()
 
-    return task.to_dict()
+    return task
 
   @classmethod
-  def delete(cls, session, task_id: int, user_id: int) -> str:
-    task: Task = Task.find_by_id(session, task_id, user_id)
-    if not Task.is_mine(task.user_id, user_id):
-      return message.NOT_HAVE_ROLE_EDIT
+  def delete(cls, task_id: int) -> str:
+    task: Task = Task.find_by_id(task_id)
+    if task == None:
+      return None
     task_name = task.name
-    session.delete(task)
-    session.commit()
+    current_session.delete(task)
+    current_session.commit()
     
     return { "message": f"{ task_name }を削除しました" }
-
-  @classmethod
-  def find_by_id(cls, session, task_id: int, user_id: int) -> 'Task':
-    query: Query = session.query(cls)
-    return  query.filter(cls.id==task_id, cls.user_id==user_id).first()
-  
-  @classmethod
-  def is_mine(cls, target_user_id, user_id: int) -> bool:
-    print(target_user_id)
-    print(user_id)
-    return target_user_id == user_id
 
   def to_dict(self):
     return {
