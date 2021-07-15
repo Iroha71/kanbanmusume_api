@@ -1,6 +1,7 @@
 from typing import Any, Dict, List
-
-from models.base import Base, convert_object2dict
+from flask_sqlalchemy_session import current_session
+from flask_jwt_extended import get_jwt_identity
+from models.base import Base
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.query import Query
@@ -18,37 +19,33 @@ class UserGirl(Base):
   girl = relationship("Girl", back_populates='user_girls')
 
   @classmethod
-  def index(cls, session, user_id: int) -> List[Dict[str, Any]]:
-    query: Query = session.query(cls)
-    girls: List['UserGirl'] = query.filter(cls.user_id==user_id).all()
-    
-    return convert_object2dict(girls)
+  def index(cls) -> List['UserGirl']:
+    query: Query = current_session.query(cls)
+    girls: List['UserGirl'] = query.filter(cls.user_id==get_jwt_identity()).all()
+
+    return girls
 
   @classmethod
-  def find_by_id(cls, session, user_girl_id: int) -> 'UserGirl':
-    query: Query = session.query(cls)
-    return query.filter(cls.id==user_girl_id).first()
+  def find_by_id(cls, user_girl_id: int, query: Query=None) -> 'UserGirl':
+    if query == None:
+      query = current_session.query(cls)
+    user_girl: 'UserGirl' = query.filter(cls.user_id==get_jwt_identity(), cls.id==user_girl_id).first()
+
+    return user_girl
 
   @classmethod
-  def is_duplicate(cls, new_girl: 'UserGirl', session) -> bool:
-    query: Query = session.query(cls)
-    exist_record: int = len(query.filter(cls.user_id==new_girl.user_id, cls.girl_id==new_girl.girl_id).all())
-    
-    return exist_record > 0
-
-  @classmethod
-  def create(cls, session, user_id: int, girl_id: int) -> Dict[str, Any]:
-    new_girl = cls(user_id=user_id, girl_id=girl_id)
-    if cls.is_duplicate(new_girl, session):
+  def create(cls, girl_id: int) -> 'UserGirl':
+    new_girl = cls(user_id=get_jwt_identity(), girl_id=girl_id)
+    if cls.is_duplicate(new_girl):
       return None
-    session.add(new_girl)
-    session.commit()
+    current_session.add(new_girl)
+    current_session.commit()
 
-    return new_girl.to_dict()
+    return new_girl
 
   @classmethod
-  def update(cls, session, user_girl_id:int, body: Dict[str, Any]) -> Dict[str, Any]:
-    girl: 'UserGirl' = cls.find_by_id(session, user_girl_id)
+  def update(cls, user_girl_id:int, body: Dict[str, Any]) -> 'UserGirl':
+    girl: 'UserGirl' = cls.find_by_id(user_girl_id)
     if girl == None:
       return None
     
@@ -56,9 +53,16 @@ class UserGirl(Base):
       if key == 'girl_id' or key == 'user_id':
         continue
       setattr(girl, key, value)
-    session.commit()
+    current_session.commit()
 
-    return girl.to_dict()
+    return girl
+
+  @classmethod
+  def is_duplicate(cls, new_girl: 'UserGirl') -> bool:
+    query: Query = current_session.query(cls)
+    exist_record: int = len(query.filter(cls.user_id==new_girl.user_id, cls.girl_id==new_girl.girl_id).all())
+    
+    return exist_record > 0
   
   def to_dict(self):
     return {
