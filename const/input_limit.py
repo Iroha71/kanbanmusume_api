@@ -1,7 +1,0 @@
-"""入力文字数を定義
-"""
-USERNAME = 30
-USER_NICKNAME = 10
-PASSWORD = 30
-
-CATEGORY_NAME = 20
