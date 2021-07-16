@@ -45,6 +45,8 @@ class User(Base):
     if user == None:
       return None
     for key, value in body.items():
+      if key == 'name' or key == 'id':
+        continue
       setattr(user, key, value)
     current_session.commit()
 

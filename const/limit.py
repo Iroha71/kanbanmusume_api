@@ -3,21 +3,26 @@ from cerberus.validator import Validator
 
 # """入力制限を定義
 # """
-user = {
+USER = {
   'name': {'required': True, 'maxlength': 30, 'empty': False },
-  'nickname': {'required': True, 'empty': False, 'maxlength': 30 },
+  'nickname': {'required': True, 'empty': False, 'maxlength': 10 },
   'password': { 'required': True, 'minlength': 6, 'maxlength': 30 }
 }
-update_user = {
-  'nickname': user['nickname']
+UPDATE_USER = {
+  'nickname': USER['nickname']
+}
+
+CATEGORY = {
+  'name': {'required': True, 'maxlength': 20, 'empty': False}
 }
 
 error_messages = {
   'user': {
-    'name': 'ユーザ名は' + str(user['name']['maxlength']) + '文字以下で入力してください',
-    'nickname': '呼び名は' + str(user['nickname']['maxlength']) + '文字以下で入力してください',
-    'password': f"パスワードは{user['password']['minlength']}~{user['password']['maxlength']}文字の英数字・記号で入力してください"
-  }
+    'name': 'ユーザ名は' + str(USER['name']['maxlength']) + '文字以下で入力してください',
+    'nickname': '呼び名は' + str(USER['nickname']['maxlength']) + '文字以下で入力してください',
+    'password': f"パスワードは{USER['password']['minlength']}~{USER['password']['maxlength']}文字の英数字・記号で入力してください"
+  },
+  'category': {'name': f"カテゴリ名は{CATEGORY['name']['maxlength']}文字以下で入力してください" }
 }
 
 def check_validate(v: Validator, rule: Dict[str, Any], schemaname: str, req: Dict[str, str]) -> Dict[str, str]:
