@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Union
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.sql.schema import ForeignKey
 from models.base import Base
 from sqlalchemy.orm import relationship
 from flask_sqlalchemy_session import current_session
@@ -11,9 +12,9 @@ class User(Base):
   name = Column(String)
   nickname = Column(String)
   password = Column(String)
-
-  girls = relationship("UserGirl", back_populates='user')
-  # tasks = relationship("Task", back_populates="user")
+  cur_girl_id = Column(ForeignKey('girls.id'))
+  
+  cur_girl = relationship("Girl", backref='users')
   
   @classmethod
   def find_by_id(cls, id: int, query: Query=None) -> 'User':
@@ -71,7 +72,8 @@ class User(Base):
       info: Dict[str, Union[str, int]] = {
         "id": self.id,
         "name": self.name,
-        "nickname": self.nickname
+        "nickname": self.nickname,
+        "cur_girl": self.cur_girl.to_dict()
       }
       if token != None:
         info['token'] = token

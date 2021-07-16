@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.orm.query import Query
 from models.base import Base
 from const import message as msg
@@ -19,8 +19,9 @@ class Task(Base):
   notify_at = Column(DateTime)
   repeat_rate = Column(Integer, default=0)
   finished_at = Column(DateTime)
-  # user = relationship("User", back_populates="tasks")
-  # category = relationship("Category", back_populates="tasks")
+  girl_id = Column(Integer, ForeignKey('girls.id'))
+
+  managing_girl = relationship('Girl', backref='tasks')
 
   @classmethod
   def index(cls, category_id: int) -> 'List[Task]':
@@ -87,5 +88,6 @@ class Task(Base):
       "category_id": self.category_id,
       "notify_at": self.notify_at,
       "repeat_rate": self.repeat_rate,
-      "finished_at": self.finished_at
+      "finished_at": self.finished_at,
+      "managed_girl": self.managing_girl.to_dict()
     }

@@ -1,6 +1,5 @@
 from typing import List
 from sqlalchemy import Column, String, DateTime
-from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Integer
 from models.base import Base
 from flask_sqlalchemy_session import current_session
@@ -14,9 +13,7 @@ class Girl(Base):
   code = Column(String(10), nullable=False, unique=True)
   detail = Column(String(100))
   birthday = Column(DateTime, nullable=False)
-
-  user_girls = relationship('UserGirl', back_populates='girl')
-
+  
   @classmethod
   def index(cls) -> List['Girl']:
     query: Query = current_session.query(cls)

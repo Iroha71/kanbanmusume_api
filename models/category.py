@@ -1,7 +1,5 @@
-from models.task import Task
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 from sqlalchemy import Column, String, Integer
-from sqlalchemy.orm import relationship
 from models.base import Base
 from flask_sqlalchemy_session import current_session
 from flask_jwt_extended import get_jwt_identity
@@ -13,7 +11,6 @@ class Category(Base):
   user_id = Column(Integer, nullable=False)
   name = Column(String, nullable=False)
   finished_rate = Column(Integer, default=0)
-  # tasks = relationship("Task", back_populates="category")
 
   @classmethod
   def index(cls) -> List['Category']:
