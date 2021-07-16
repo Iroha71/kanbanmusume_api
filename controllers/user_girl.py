@@ -3,8 +3,7 @@ from flask.json import jsonify
 from models.user_girl import UserGirl
 from typing import Any, Dict, List
 from flask import Blueprint
-from flask_jwt_extended import get_jwt_identity, jwt_required
-from flask_sqlalchemy_session import current_session
+from flask_jwt_extended import jwt_required
 from const import message as msg
 
 app = Blueprint('user_girl', __name__, url_prefix='/user_girl')
@@ -15,9 +14,7 @@ def index():
   have_girls: List[UserGirl] = UserGirl.index()
   if len(have_girls) <= 0:
     return jsonify(msg.NOT_FOUND['message']), msg.NOT_FOUND['status']
-  res = []
-  for have_girl in have_girls:
-    res.append(have_girl.to_dict())
+  res = [have_girl.to_dict() for have_girl in have_girls]
 
   return jsonify(res)
 

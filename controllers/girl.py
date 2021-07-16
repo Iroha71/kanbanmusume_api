@@ -8,9 +8,7 @@ app = Blueprint('girl', __name__, url_prefix='/girl')
 @app.route('/', methods=['GET'])
 def index():
   girls: List[Girl] = Girl.index()
-  res = []
-  for girl in girls:
-    res.append(girl.to_dict())
+  res = [girl.to_dict() for girl in girls]
 
   return jsonify(res)
 

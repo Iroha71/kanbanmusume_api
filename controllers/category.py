@@ -26,9 +26,7 @@ def index():
   categories: List[str, Union[str, int]] = Category.index()
   if len(categories) <= 0:
     return jsonify(message.NOT_FOUND['message']), message.NOT_FOUND['status']
-  res = []
-  for category in categories:
-    res.append(category.to_dict())
+  res = [category.to_dict() for category in categories]
 
   return jsonify(res)
 
