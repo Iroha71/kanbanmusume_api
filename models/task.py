@@ -1,7 +1,8 @@
+from models.user import User
 from typing import Any, Dict, List
 from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.orm.query import Query
 from models.base import Base
 from const import message as msg
@@ -19,8 +20,9 @@ class Task(Base):
   notify_at = Column(DateTime)
   repeat_rate = Column(Integer, default=0)
   finished_at = Column(DateTime)
-  # user = relationship("User", back_populates="tasks")
-  # category = relationship("Category", back_populates="tasks")
+  girl_id = Column(Integer, ForeignKey('girls.id'))
+
+  managing_girl = relationship('Girl', backref='tasks')
 
   @classmethod
   def index(cls, category_id: int) -> 'List[Task]':
@@ -48,7 +50,8 @@ class Task(Base):
       user_id=get_jwt_identity(),
       memo=memo,
       repeat_rate=repeat_rate,
-      notify_at=notify_at
+      notify_at=notify_at,
+      girl_id=cls.get_cur_girl_id()
       )
     current_session.add(task)
     current_session.commit()
@@ -79,6 +82,14 @@ class Task(Base):
     
     return { "message": f"{ task_name }を削除しました" }
 
+  @classmethod
+  def get_cur_girl_id(cls, query: Query=None) -> int:
+    if query == None:
+      query = current_session.query(User)
+    user: User = query.filter(User.id==get_jwt_identity()).first()
+
+    return user.cur_girl_id
+
   def to_dict(self):
     return {
       "id": self.id,
@@ -87,5 +98,6 @@ class Task(Base):
       "category_id": self.category_id,
       "notify_at": self.notify_at,
       "repeat_rate": self.repeat_rate,
-      "finished_at": self.finished_at
+      "finished_at": self.finished_at,
+      "managed_girl": self.managing_girl.to_dict()
     }

@@ -3,7 +3,7 @@ from typing import Any, Dict
 from models.user import User
 from const.message import NOT_FOUND, DUPLICATE_RECORD
 from cerberus import Validator
-from const import limit
+from const import limit, message as msg
 from flask_jwt_extended import jwt_required
 
 app = Blueprint('user', __name__, url_prefix='/user')
@@ -37,11 +37,21 @@ def update(user_id: str) -> Dict[str, Any]:
 
   return jsonify(user.to_dict())
 
-@app.route('/<user_id>', methods=['GET'])
+@app.route('/', methods=['GET'])
 @jwt_required()
-def find(user_id: str):
-  user: User = User.find_by_id(user_id)
+def find():
+  user: User = User.find_by_id()
   if user == None:
     return jsonify(NOT_FOUND['message']), NOT_FOUND['status']
 
   return jsonify(user.to_dict())
+
+@app.route('/regist_girl', methods=['POST'])
+@jwt_required()
+def regist_girl():
+  girl_id: str = request.json.get('user')['girl_id']
+  updated_user: User = User.regist_cur_girl(girl_id)
+  if updated_user == None:
+    return msg.NOT_FOUND['message'], msg.NOT_FOUND['status']
+  
+  return jsonify(updated_user.to_dict())

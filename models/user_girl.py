@@ -15,8 +15,7 @@ class UserGirl(Base):
   like_rate = Column(Integer, default=0)
   exp = Column(Integer, default=0)
 
-  user = relationship("User", back_populates='girls')
-  girl = relationship("Girl", back_populates='user_girls')
+  girl = relationship("Girl", backref='user_girls')
 
   @classmethod
   def index(cls) -> List['UserGirl']:

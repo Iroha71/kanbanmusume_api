@@ -1,5 +1,8 @@
+from models.girl import Girl
 from typing import Any, Dict, List, Union
+from flask_jwt_extended.utils import get_jwt_identity
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.sql.schema import ForeignKey
 from models.base import Base
 from sqlalchemy.orm import relationship
 from flask_sqlalchemy_session import current_session
@@ -11,15 +14,15 @@ class User(Base):
   name = Column(String)
   nickname = Column(String)
   password = Column(String)
-
-  girls = relationship("UserGirl", back_populates='user')
-  # tasks = relationship("Task", back_populates="user")
+  cur_girl_id = Column(ForeignKey('girls.id'))
+  
+  cur_girl = relationship("Girl", backref='users')
   
   @classmethod
-  def find_by_id(cls, id: int, query: Query=None) -> 'User':
+  def find_by_id(cls, query: Query=None) -> 'User':
     if query == None:
       query = current_session.query(cls)
-    user: 'User' = query.filter(cls.id==id).first()
+    user: 'User' = query.filter(cls.id==get_jwt_identity()).first()
     if user == None:
       return None
     
@@ -53,6 +56,19 @@ class User(Base):
     return user
 
   @classmethod
+  def regist_cur_girl(cls, girl_id: int, user: 'User'=None) -> 'User':
+    query: Query = current_session.query(cls)
+    if user == None:
+      user = query.filter(cls.id==get_jwt_identity()).first()
+    girl = Girl.find_by_id(girl_id, query)
+    if girl == None:
+      return None
+    user.cur_girl_id = girl.id
+    current_session.commit()
+
+    return user
+
+  @classmethod
   def is_duplicate_name(cls, name: str) -> bool:
     """ユーザ名が重複しているか
 
@@ -71,7 +87,8 @@ class User(Base):
       info: Dict[str, Union[str, int]] = {
         "id": self.id,
         "name": self.name,
-        "nickname": self.nickname
+        "nickname": self.nickname,
+        "cur_girl": self.cur_girl.to_dict()
       }
       if token != None:
         info['token'] = token
