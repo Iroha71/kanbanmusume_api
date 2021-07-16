@@ -61,6 +61,8 @@ class Task(Base):
     if task == None:
       return None
     for key, value in body.items():
+      if key == 'id' or key == 'user_id':
+        continue
       setattr(task, key, value)
     current_session.commit()
 
