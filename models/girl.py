@@ -22,8 +22,9 @@ class Girl(Base):
     return girls
 
   @classmethod
-  def find_by_id(cls, girl_id: int) -> 'Girl':
-    query: Query = current_session.query(cls)
+  def find_by_id(cls, girl_id: int, query: Query=None) -> 'Girl':
+    if query == None:
+      query: Query = current_session.query(cls)
     girl: 'Girl' = query.filter(cls.id==girl_id).first()
 
     return girl

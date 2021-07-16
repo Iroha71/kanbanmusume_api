@@ -1,3 +1,4 @@
+from models.user import User
 from typing import Any, Dict, List
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
@@ -49,7 +50,8 @@ class Task(Base):
       user_id=get_jwt_identity(),
       memo=memo,
       repeat_rate=repeat_rate,
-      notify_at=notify_at
+      notify_at=notify_at,
+      girl_id=cls.get_cur_girl_id()
       )
     current_session.add(task)
     current_session.commit()
@@ -79,6 +81,14 @@ class Task(Base):
     current_session.commit()
     
     return { "message": f"{ task_name }を削除しました" }
+
+  @classmethod
+  def get_cur_girl_id(cls, query: Query=None) -> int:
+    if query == None:
+      query = current_session.query(User)
+    user: User = query.filter(User.id==get_jwt_identity()).first()
+
+    return user.cur_girl_id
 
   def to_dict(self):
     return {
