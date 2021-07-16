@@ -1,41 +1,66 @@
-from typing import Any, Dict, List
+from typing import Dict, List
 from flask import Blueprint
 from flask.globals import request
 from flask.json import jsonify
-from flask_sqlalchemy_session import current_session
-from controllers.auth import current_user_id
 from flask_jwt_extended import jwt_required
-from sqlalchemy.orm.query import Query
 from models.task import Task
+from const.message import NOT_FOUND
+from const import limit
+from cerberus.validator import Validator
 
 app = Blueprint('task', __name__, url_prefix='/task')
+v = Validator(allow_unknown=True)
 
 @app.route('/', methods=['GET'])
 @jwt_required()
 def index():
-  query: Query = current_session.query(Task)
-  res: List[Task] = Task.index(query, request.args.get('category_id'))
+  body = request.json.get('task')
+  tasks: List[Task] = Task.index(body['category_id'])
+  if len(tasks) <= 0:
+    return jsonify(NOT_FOUND['message']), NOT_FOUND['status']
+  res = [task.to_dict() for task in tasks]
   
   return jsonify(res)
 
-@app.route('/<category_id>', methods=['POST'])
+@app.route('/<task_id>', methods=['GET'])
 @jwt_required()
-def create(category_id: str):
-  requested_task: Dict[str, Any] = request.json.get('task')
-  task: Dict[str, Any] = Task.create(current_session, requested_task, category_id, current_user_id())
+def find(task_id: str):
+  task: Task = Task.find_by_id(task_id)
+  if task == None:
+    return jsonify(NOT_FOUND['message']), NOT_FOUND['status']
+  
+  return jsonify(task.to_dict())
 
-  return jsonify(task)
+@app.route('/', methods=['POST'])
+@jwt_required()
+def create():
+  body: Dict[str, str] = request.json.get('task')
+  errors: Dict[str, str] = limit.check_validate(v, limit.TASK, 'task', body)
+  if len(errors):
+    return jsonify(errors), 422
+  created_task: Task = Task.create(body)
+  if created_task == None:
+    return jsonify(NOT_FOUND['message']), NOT_FOUND['status']
+
+  return jsonify(created_task.to_dict())
 
 @app.route('/<task_id>', methods=['PUT'])
 @jwt_required()
 def update(task_id: str):
-  task: Dict[str, Any] = Task.update(current_session, request.json.get('task'), task_id)
+  errors: Dict[str, str] = limit.check_validate(v, limit.UPDATE_TASK, 'task', request.json.get('task'))
+  if len(errors) > 0:
+    return jsonify(errors), 422
+  task: Task = Task.update(task_id, request.json.get('task'))
+  if task == None:
+    return jsonify(NOT_FOUND['message']), NOT_FOUND['status']
 
-  return jsonify(task)
+  return jsonify(task.to_dict())
 
 @app.route('/<task_id>', methods=['DELETE'])
 @jwt_required()
 def delete(task_id: str):
-  message: Dict[str, str] = Task.delete(current_session, task_id, current_user_id())
+  message: str = Task.delete(task_id)
+  if message == None:
+    return jsonify(NOT_FOUND['message']), NOT_FOUND['status']
 
   return jsonify(message)
