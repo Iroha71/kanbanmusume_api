@@ -1,3 +1,4 @@
+from models.user_girl import UserGirl
 from models.user import User
 from typing import Any, Dict, List
 from sqlalchemy import Column, Integer, String, DateTime
@@ -8,6 +9,7 @@ from models.base import Base
 from const import message as msg
 from flask_jwt_extended import get_jwt_identity
 from flask_sqlalchemy_session import current_session
+import datetime
 
 class Task(Base):
   __tablename__ = 'tasks'
@@ -89,6 +91,17 @@ class Task(Base):
     user: User = query.filter(User.id==get_jwt_identity()).first()
 
     return user.cur_girl_id
+
+  @classmethod
+  def done_tasks(cls, tasks: List['Task']):
+    finished_timing = datetime.datetime.now()
+    query: Query = current_session.query(User, UserGirl)
+    user: User = User.find_by_id(query)
+    user_girl: UserGirl = UserGirl.find_by_id()
+    for task in tasks:
+      task.finished_at = finished_timing
+      current_session.commit()
+    
 
   def to_dict(self):
     return {
