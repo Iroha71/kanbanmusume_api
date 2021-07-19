@@ -1,12 +1,15 @@
+from sqlalchemy.sql.expression import join
+from models.user_girl import UserGirl
 from models.girl import Girl
 from typing import Any, Dict, List, Union
 from flask_jwt_extended.utils import get_jwt_identity
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.sql.schema import ForeignKey
-from models.base import Base
-from sqlalchemy.orm import relationship
+from models.base import Base, get_query
+from sqlalchemy.orm import base, relationship
 from flask_sqlalchemy_session import current_session
 from sqlalchemy.orm.query import Query
+from models import user_girl as ug
 class User(Base):
   __tablename__ = 'users'
 
@@ -14,18 +17,20 @@ class User(Base):
   name = Column(String)
   nickname = Column(String)
   password = Column(String)
-  cur_girl_id = Column(ForeignKey('girls.id'))
-  
-  cur_girl = relationship("Girl", backref='users')
+  coin = Column(Integer, default=0)
+
+  user_girls = relationship('UserGirl', back_populates='owner_user')
+  cur_partner = None
   
   @classmethod
-  def find_by_id(cls, query: Query=None) -> 'User':
+  def find_by_id(cls, query: Query=None) -> Any:
     if query == None:
       query = current_session.query(cls)
     user: 'User' = query.filter(cls.id==get_jwt_identity()).first()
-    if user == None:
-      return None
-    
+    for unlocked_girl in user.user_girls:
+      if unlocked_girl.is_partner == ug.IS_PARTNER:
+        user.cur_partner = unlocked_girl
+        break
     return user
   
   @classmethod
@@ -43,27 +48,12 @@ class User(Base):
     return new_user.name
 
   @classmethod
-  def update(cls, id: int, body: Dict[str, Any]) -> 'User':
-    user: 'User' = cls.find_by_id(id)
-    if user == None:
-      return None
+  def update(cls, body: Dict[str, Any]) -> 'User':
+    user: Any = cls.find_by_id()
     for key, value in body.items():
       if key == 'name' or key == 'id':
         continue
       setattr(user, key, value)
-    current_session.commit()
-
-    return user
-
-  @classmethod
-  def regist_cur_girl(cls, girl_id: int, user: 'User'=None) -> 'User':
-    query: Query = current_session.query(cls)
-    if user == None:
-      user = query.filter(cls.id==get_jwt_identity()).first()
-    girl = Girl.find_by_id(girl_id, query)
-    if girl == None:
-      return None
-    user.cur_girl_id = girl.id
     current_session.commit()
 
     return user
@@ -82,14 +72,16 @@ class User(Base):
     same_name_user: List['User'] = query.filter(cls.name==name).all()
 
     return len(same_name_user) > 0
+  
+  def add_coin(self, gave_coin: int):
+    self.coin += gave_coin
+    if (self.coin < 0):
+      self.coin = 0
 
-  def to_dict(self, token: str=None) -> Dict[str, Any]:
-      info: Dict[str, Union[str, int]] = {
-        "id": self.id,
-        "name": self.name,
-        "nickname": self.nickname,
-        "cur_girl": self.cur_girl.to_dict()
-      }
-      if token != None:
-        info['token'] = token
-      return info
+  def to_dict(self):
+    return {
+      "id": self.name,
+      "name": self.name,
+      "nickname": self.nickname,
+      "partner": self.cur_partner.to_dict()
+    }

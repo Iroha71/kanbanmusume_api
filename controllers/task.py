@@ -1,6 +1,6 @@
-from typing import Dict, List
+from typing import Any, Dict, List
 from flask import Blueprint
-from flask.globals import request
+from flask import request
 from flask.json import jsonify
 from flask_jwt_extended import jwt_required
 from models.task import Task
@@ -64,3 +64,13 @@ def delete(task_id: str):
     return jsonify(NOT_FOUND['message']), NOT_FOUND['status']
 
   return jsonify(message)
+
+@app.route('/<task_id>/done', methods=['POST'])
+@jwt_required()
+def done_task(task_id: str):
+  task: Task = Task.find_by_id(task_id)
+  if task == None:
+    return jsonify(NOT_FOUND['message']), NOT_FOUND['status']
+  result: Dict[str, Any] = Task.done_tasks([task])
+
+  return  jsonify(result)

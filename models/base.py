@@ -1,19 +1,12 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm.query import Query
+from flask_sqlalchemy_session import current_session
 
 Base = declarative_base()
 
-def convert_object2dict(objects: List[Any]) -> List[Dict[str, Any]]:
-  """オブジェクト配列を辞書型配列に変換する
-
-  Args:
-      objects (List[Any]): オブジェクト配列
-
-  Returns:
-      Dict[str, Any]: 辞書配列
-  """
-  result = []
-  for obj in objects:
-    result.append(obj.to_dict())
-  
-  return result
+def get_query(cls_obj: Any, query: Query) -> Query:
+  if query==None:
+    return current_session.query(cls_obj)
+  else:
+    return query

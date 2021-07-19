@@ -5,9 +5,10 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.orm.query import Query
 from models.base import Base
-from const import message as msg
+from const import limit
 from flask_jwt_extended import get_jwt_identity
 from flask_sqlalchemy_session import current_session
+import datetime
 
 class Task(Base):
   __tablename__ = 'tasks'
@@ -89,6 +90,19 @@ class Task(Base):
     user: User = query.filter(User.id==get_jwt_identity()).first()
 
     return user.cur_girl_id
+
+  @classmethod
+  def done_tasks(cls, tasks: List['Task']) -> Dict[str, Any]:
+    finished_timing = datetime.datetime.now()
+    for task in tasks:
+      if task.finished_at != None:
+        continue
+      task.finished_at = finished_timing
+    user: User = User.find_by_id()
+    user.add_coin(len(tasks) * limit.DONE_TASK_COIN)
+    current_session.commit()
+
+    return { "user": user.to_dict(), "gave_coin": len(tasks) * limit.DONE_TASK_COIN }
 
   def to_dict(self):
     return {

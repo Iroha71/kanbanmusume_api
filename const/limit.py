@@ -1,6 +1,11 @@
 from typing import Any, Dict, List
 from cerberus.validator import Validator
 
+"""経験値計算に必要な値
+"""
+REQUIRE_EXP_BASE = 100 # レベル1で必要な経験値
+REQUIRE_EXP_MULTIPLE = 1.1
+DONE_TASK_COIN = 2
 # """入力制限を定義
 # """
 USER = {
