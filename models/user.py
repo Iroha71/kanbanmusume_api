@@ -18,6 +18,7 @@ class User(Base):
   nickname = Column(String)
   password = Column(String)
   coin = Column(Integer, default=0)
+  line_id = Column(String)
 
   user_girls = relationship('UserGirl', back_populates='owner_user')
   cur_partner = None
