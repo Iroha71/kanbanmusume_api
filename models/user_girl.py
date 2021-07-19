@@ -8,7 +8,7 @@ from models.base import get_query
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.query import Query
-from const.limit import DONE_TASK_EXP, REQUIRE_EXP_BASE, REQUIRE_EXP_MULTIPLE
+from const.limit import REQUIRE_EXP_BASE, REQUIRE_EXP_MULTIPLE
 
 IS_PARTNER: Final[int] = 1
 ISNT_PARTNER: Final[int] = 0
@@ -81,20 +81,18 @@ class UserGirl(Base):
     new_partner: 'UserGirl' = query.filter(cls.user_id==get_jwt_identity(), cls.girl_id==new_girl_id).first()
     
     return new_partner
-    
-  def add_exp(self, done_task_num: int):
-    add_exp = done_task_num * DONE_TASK_EXP
-    self.exp += add_exp
-    if (self.exp >= self.require_exp):
-      self = self.up_level()
-    current_session.commit()
+
+  @classmethod
+  def get_partner(cls, query: Query=None) -> 'UserGirl':
+    query = get_query(cls, query)
+    partner: 'UserGirl' = query.filter(cls.user_id==get_jwt_identity(), cls.is_partner==1)
+
+    return partner
 
   def up_level(self) -> 'UserGirl':
     self.level += 1
     self.exp = 0
     self.require_exp *= REQUIRE_EXP_MULTIPLE
-
-    return self
   
   def to_dict(self):
     return {

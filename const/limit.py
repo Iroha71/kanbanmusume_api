@@ -5,7 +5,7 @@ from cerberus.validator import Validator
 """
 REQUIRE_EXP_BASE = 100 # レベル1で必要な経験値
 REQUIRE_EXP_MULTIPLE = 1.1
-DONE_TASK_EXP = 2
+DONE_TASK_COIN = 2
 # """入力制限を定義
 # """
 USER = {

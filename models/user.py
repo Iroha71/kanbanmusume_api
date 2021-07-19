@@ -17,6 +17,7 @@ class User(Base):
   name = Column(String)
   nickname = Column(String)
   password = Column(String)
+  coin = Column(Integer, default=0)
 
   user_girls = relationship('UserGirl', back_populates='owner_user')
   cur_partner = None
@@ -71,6 +72,11 @@ class User(Base):
     same_name_user: List['User'] = query.filter(cls.name==name).all()
 
     return len(same_name_user) > 0
+  
+  def add_coin(self, gave_coin: int):
+    self.coin += gave_coin
+    if (self.coin < 0):
+      self.coin = 0
 
   def to_dict(self):
     return {
