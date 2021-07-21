@@ -84,5 +84,6 @@ class User(Base):
       "id": self.name,
       "name": self.name,
       "nickname": self.nickname,
+      "coin": self.coin,
       "partner": self.cur_partner.to_dict()
     }

@@ -100,5 +100,6 @@ class UserGirl(Base):
       "girl": self.girl.to_dict(),
       "level": self.level,
       "like_rate": self.like_rate,
-      "exp": self.exp
+      "exp": self.exp,
+      "require_exp": self.require_exp
     }

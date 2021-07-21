@@ -1,8 +1,9 @@
 # パッケージ
 - flask
-- flask-restful
+- sqlalchemy
 - flask-jwt-extended
-- flask-sqlalchemy
+## pip
 - flask-sqlalchemy-session
 - python-dotenv
 - line-bot-sdk
+- cerberus
